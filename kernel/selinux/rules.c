@@ -13,7 +13,6 @@
 #define SELINUX_POLICY_INSTEAD_SELINUX_SS
 #endif
 
-#define KERNEL_SU_DOMAIN "su"
 #define KERNEL_SU_FILE "ksu_file"
 #define KERNEL_EXEC_TYPE "ksu_exec"
 #define ALL NULL
@@ -45,10 +44,10 @@ void apply_kernelsu_rules()
 	rcu_read_lock();
 	struct policydb *db = get_policydb();
 
-	ksu_permissive(db, KERNEL_SU_DOMAIN);
-	ksu_typeattribute(db, KERNEL_SU_DOMAIN, "mlstrustedsubject");
-	ksu_typeattribute(db, KERNEL_SU_DOMAIN, "netdomain");
-	ksu_typeattribute(db, KERNEL_SU_DOMAIN, "bluetoothdomain");
+	ksu_permissive(db, "su");
+	ksu_typeattribute(db, "su", "mlstrustedsubject");
+	ksu_typeattribute(db, "su", "netdomain");
+	ksu_typeattribute(db, "su", "bluetoothdomain");
 
 	// Create unconstrained file type
 	ksu_type(db, KERNEL_SU_FILE, "file_type");
@@ -56,14 +55,14 @@ void apply_kernelsu_rules()
 	ksu_allow(db, ALL, KERNEL_SU_FILE, ALL, ALL);
 
 	// allow all!
-	ksu_allow(db, KERNEL_SU_DOMAIN, ALL, ALL, ALL);
+	ksu_allow(db, "su", ALL, ALL, ALL);
 
 	// allow us do any ioctl
 	if (db->policyvers >= POLICYDB_VERSION_XPERMS_IOCTL) {
-		ksu_allowxperm(db, KERNEL_SU_DOMAIN, ALL, "blk_file", ALL);
-		ksu_allowxperm(db, KERNEL_SU_DOMAIN, ALL, "fifo_file", ALL);
-		ksu_allowxperm(db, KERNEL_SU_DOMAIN, ALL, "chr_file", ALL);
-		ksu_allowxperm(db, KERNEL_SU_DOMAIN, ALL, "file", ALL);
+		ksu_allowxperm(db, "su", ALL, "blk_file", ALL);
+		ksu_allowxperm(db, "su", ALL, "fifo_file", ALL);
+		ksu_allowxperm(db, "su", ALL, "chr_file", ALL);
+		ksu_allowxperm(db, "su", ALL, "file", ALL);
 	}
 
 	// we need to save allowlist in /data/adb/ksu
@@ -85,37 +84,37 @@ void apply_kernelsu_rules()
 	// our ksud triggered by init
 	ksu_allow(db, "init", "adb_data_file", "file", ALL);
 	ksu_allow(db, "init", "adb_data_file", "dir", ALL); // #1289
-	ksu_allow(db, "init", KERNEL_SU_DOMAIN, ALL, ALL);
+	ksu_allow(db, "init", "su", ALL, ALL);
 	// we need to umount modules in zygote
 	ksu_allow(db, "zygote", "adb_data_file", "dir", "search");
 
 	// copied from Magisk rules
 	// suRights
-	ksu_allow(db, "servicemanager", KERNEL_SU_DOMAIN, "dir", "search");
-	ksu_allow(db, "servicemanager", KERNEL_SU_DOMAIN, "dir", "read");
-	ksu_allow(db, "servicemanager", KERNEL_SU_DOMAIN, "file", "open");
-	ksu_allow(db, "servicemanager", KERNEL_SU_DOMAIN, "file", "read");
-	ksu_allow(db, "servicemanager", KERNEL_SU_DOMAIN, "process", "getattr");
-	ksu_allow(db, ALL, KERNEL_SU_DOMAIN, "process", "sigchld");
+	ksu_allow(db, "servicemanager", "su", "dir", "search");
+	ksu_allow(db, "servicemanager", "su", "dir", "read");
+	ksu_allow(db, "servicemanager", "su", "file", "open");
+	ksu_allow(db, "servicemanager", "su", "file", "read");
+	ksu_allow(db, "servicemanager", "su", "process", "getattr");
+	ksu_allow(db, ALL, "su", "process", "sigchld");
 
 	// allowLog
-	ksu_allow(db, "logd", KERNEL_SU_DOMAIN, "dir", "search");
-	ksu_allow(db, "logd", KERNEL_SU_DOMAIN, "file", "read");
-	ksu_allow(db, "logd", KERNEL_SU_DOMAIN, "file", "open");
-	ksu_allow(db, "logd", KERNEL_SU_DOMAIN, "file", "getattr");
+	ksu_allow(db, "logd", "su", "dir", "search");
+	ksu_allow(db, "logd", "su", "file", "read");
+	ksu_allow(db, "logd", "su", "file", "open");
+	ksu_allow(db, "logd", "su", "file", "getattr");
 
 	// dumpsys
-	ksu_allow(db, ALL, KERNEL_SU_DOMAIN, "fd", "use");
-	ksu_allow(db, ALL, KERNEL_SU_DOMAIN, "fifo_file", "write");
-	ksu_allow(db, ALL, KERNEL_SU_DOMAIN, "fifo_file", "read");
-	ksu_allow(db, ALL, KERNEL_SU_DOMAIN, "fifo_file", "open");
-	ksu_allow(db, ALL, KERNEL_SU_DOMAIN, "fifo_file", "getattr");
+	ksu_allow(db, ALL, "su", "fd", "use");
+	ksu_allow(db, ALL, "su", "fifo_file", "write");
+	ksu_allow(db, ALL, "su", "fifo_file", "read");
+	ksu_allow(db, ALL, "su", "fifo_file", "open");
+	ksu_allow(db, ALL, "su", "fifo_file", "getattr");
 
 	// bootctl
-	ksu_allow(db, "hwservicemanager", KERNEL_SU_DOMAIN, "dir", "search");
-	ksu_allow(db, "hwservicemanager", KERNEL_SU_DOMAIN, "file", "read");
-	ksu_allow(db, "hwservicemanager", KERNEL_SU_DOMAIN, "file", "open");
-	ksu_allow(db, "hwservicemanager", KERNEL_SU_DOMAIN, "process",
+	ksu_allow(db, "hwservicemanager", "su", "dir", "search");
+	ksu_allow(db, "hwservicemanager", "su", "file", "read");
+	ksu_allow(db, "hwservicemanager", "su", "file", "open");
+	ksu_allow(db, "hwservicemanager", "su", "process",
 		  "getattr");
 
 	// For mounting loop devices, mirrors, tmpfs
@@ -123,7 +122,7 @@ void apply_kernelsu_rules()
 	ksu_allow(db, "kernel", ALL, "file", "write");
 
 	// Allow all binder transactions
-	ksu_allow(db, ALL, KERNEL_SU_DOMAIN, "binder", ALL);
+	ksu_allow(db, ALL, "su", "binder", ALL);
 
 	// Allow system server devpts
 	ksu_allow(db, "system_server", "untrusted_app_all_devpts", "chr_file",
